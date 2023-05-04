@@ -2,10 +2,11 @@
 
 from functools import wraps
 
+import ipopt
 import numpy as np
 import sympy as sm
 from sympy.physics import mechanics as me
-import ipopt
+
 try:
     plt = sm.external.import_module('matplotlib.pyplot',
                                     __import__kwargs={'fromlist': ['']},
@@ -763,12 +764,16 @@ class ConstraintCollocator(object):
         """Instantiates a set containing all of the instance functions, i.e.
         x(1.0) in the instance constraints."""
 
-        all_funcs = set()
+        self._inst_constrs_atoms = []
+        functions = tuple(
+            f.__class__ for f in self.state_symbols + self.input_trajectories)
 
         for con in self.instance_constraints:
-            all_funcs = all_funcs.union(con.atoms(sm.Function))
+            self._inst_constrs_atoms.append(con.atoms(*functions))
 
-        self.instance_constraint_function_atoms = all_funcs
+        self._inst_constrs_atoms = tuple(self._inst_constrs_atoms)
+        self.instance_constraint_function_atoms = set().union(
+            *self._inst_constrs_atoms)
 
     def _find_closest_free_index(self):
         """Instantiates a dictionary mapping the instance functions to the
@@ -818,8 +823,8 @@ class ConstraintCollocator(object):
         rows = []
         cols = []
 
-        for i, con in enumerate(self.instance_constraints):
-            funcs = con.atoms(sm.Function)
+        for i, (con, funcs) in enumerate(zip(self.instance_constraints,
+                                             self._inst_constrs_atoms)):
             indices = [idx_map[f] for f in funcs]
             row_idxs = num_eom_constraints + i * np.ones(len(indices),
                                                          dtype=int)
@@ -838,8 +843,9 @@ class ConstraintCollocator(object):
 
         funcs = []
         num_vals_per_func = []
-        for con in self.instance_constraints:
-            partials = list(con.atoms(sm.Function))
+        for con, partials in zip(self.instance_constraints,
+                                 self._inst_constrs_atoms):
+            partials = list(partials)
             num_vals_per_func.append(len(partials))
             jac = sm.Matrix([con]).jacobian(partials)
             jac = jac.subs(def_map)

@@ -2,7 +2,7 @@
 
 from functools import wraps
 
-import ipopt
+import cyipopt
 import numpy as np
 import sympy as sm
 from sympy.physics import mechanics as me
@@ -82,7 +82,7 @@ class _DocInherit(object):
 _doc_inherit = _DocInherit
 
 
-class Problem(ipopt.problem):
+class Problem(cyipopt.Problem):
     """This class allows the user to instantiate a problem object with the
     essential data required to solve a direct collocation optinal control or
     parameter identification problem."""

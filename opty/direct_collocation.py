@@ -370,8 +370,7 @@ class Problem(cyipopt.Problem):
         """
 
         con_violations = self.con(vector)
-        con_nodes = range(self.collocator.num_states,
-                          self.collocator.num_collocation_nodes + 1)
+        con_nodes = range(1, self.collocator.num_collocation_nodes)
         N = len(con_nodes)
         fig, axes = plt.subplots(self.collocator.num_states + 1)
 

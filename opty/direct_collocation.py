@@ -169,6 +169,10 @@ class Problem(cyipopt.Problem):
                     idx = num_non_par_nodes + i
                     lb[idx] = bounds[0]
                     ub[idx] = bounds[1]
+                else:
+                    raise ValueError("Bounds must be specified for either a "
+                                     "state, unknown trajectory, or unknown "
+                                     f"parameter. `{var}` is neither.")
 
         self.lower_bound = lb
         self.upper_bound = ub

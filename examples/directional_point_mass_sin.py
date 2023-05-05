@@ -12,7 +12,11 @@ The current method is mainly a proof of concept and it would be
 preferable to actually implement a more decent approach. One of
 the features, which would also be nice to add, is to make have
 periodic constraints, e.g. same state at the beginning and end
-of the trajectory.
+of the trajectory. See #97. This seems possible now. Only problem
+is that making dx periodic gives either a really strange step or
+makes the problem infeasible. A possible improvement would be to
+use another integrator, i.e. midpoint. This however gives a heavily
+oscillating state in the solution, which is incorrect.
 
 x is the position of the point horizontally from the origin (x-axis)
 y is the position of the point vertically from the origin (y-axis)
@@ -21,7 +25,6 @@ theta is the angle of the force applied to the point
 m is the mass of the point
 
 """
-
 import matplotlib.pyplot as plt
 import numpy as np
 import sympy as sm
@@ -46,7 +49,7 @@ m = sm.Symbol("m")
 
 ddx = me.dynamicsymbols("dx", 1)
 ddy = me.dynamicsymbols("dy", 1)
-eoms = sm.Matrix([
+eoms = sm.ImmutableMatrix([
     dx - x,
     dy - y,
     ddx - (F * sm.cos(theta)) / m,
@@ -65,15 +68,12 @@ bounds = {
 }
 initial_state_constraints = {
     x: 0,
-    dx: 0,
     y: 0,
-    dy: 0,
 }
 final_state_constraints = {
     x: 2 * sm.pi,
-    y: 0,
 }
-end_point_constraints = []  # (x, y, dx, dy, theta, F)
+end_point_constraints = (y, dy, theta, F)  # dx somehow gives problems
 instance_constraints = []
 
 state_symbols = (x, dx, y, dy)

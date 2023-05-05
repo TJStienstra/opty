@@ -783,8 +783,16 @@ class ConstraintCollocator(object):
         nearest index in the free variables vector."""
 
         def determine_free_index(time_index, state):
-            state_index = self.state_symbols.index(state)
-            return time_index + state_index * self.num_collocation_nodes
+            N = self.num_collocation_nodes
+            if state in self.state_symbols:
+                state_index = self.state_symbols.index(state)
+                return time_index + state_index * N
+            elif state in self.input_trajectories:
+                input_index = self.input_trajectories.index(state)
+                return (time_index + self.num_states * N +
+                        input_index * N)
+            raise ValueError(f"The state {state} used in an instance "
+                             f"constraint is not a state of the system.")
 
         N = self.num_collocation_nodes
         h = self.node_time_interval
